@@ -2,18 +2,21 @@ use axum::Json;
 use axum::extract::{Path, State};
 use uuid::Uuid;
 
-use super::entities::{CreateUserRequest, UpdateUserRequest, User};
+use super::entities::{CreateUserRequest, UpdateUserRequest};
 use super::usecases;
 use crate::app::state::AppState;
+use crate::domain::users::entities::UserResponse;
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
 use crate::shared::types::result::DomainResult;
 
 pub async fn get_all_users(
     State(state): State<AppState>,
-) -> Result<ApiResponse<Vec<User>>, AppError> {
+) -> Result<ApiResponse<Vec<UserResponse>>, AppError> {
     match usecases::get_all_users(&state.db).await {
-        DomainResult::Ok(users) => Ok(ApiResponse::ok(users)),
+        DomainResult::Ok(users) => Ok(ApiResponse::ok(
+            users.into_iter().map(UserResponse::from).collect(),
+        )),
         DomainResult::Err(e) => Err(AppError::internal_server_error(e)),
         _ => Err(AppError::internal_server_error(
             "Unexpected error".to_string(),
@@ -24,9 +27,9 @@ pub async fn get_all_users(
 pub async fn find_one_user(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
-) -> Result<ApiResponse<User>, AppError> {
+) -> Result<ApiResponse<UserResponse>, AppError> {
     match usecases::find_one_user(&state.db, id).await {
-        DomainResult::Ok(user) => Ok(ApiResponse::ok(user)),
+        DomainResult::Ok(user) => Ok(ApiResponse::ok(user.into())),
         DomainResult::NotFound => Err(AppError::not_found("User not found")),
         DomainResult::Err(e) => Err(AppError::internal_server_error(e)),
     }
@@ -35,9 +38,9 @@ pub async fn find_one_user(
 pub async fn create_user(
     State(state): State<AppState>,
     Json(req): Json<CreateUserRequest>,
-) -> Result<ApiResponse<User>, AppError> {
+) -> Result<ApiResponse<UserResponse>, AppError> {
     match usecases::create_user(&state.db, req).await {
-        DomainResult::Ok(user) => Ok(ApiResponse::created(user)),
+        DomainResult::Ok(user) => Ok(ApiResponse::created(user.into())),
         DomainResult::Err(e) => Err(AppError::internal_server_error(e)),
         _ => Err(AppError::internal_server_error(
             "Unexpected error".to_string(),
@@ -49,9 +52,9 @@ pub async fn update_user(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateUserRequest>,
-) -> Result<ApiResponse<User>, AppError> {
+) -> Result<ApiResponse<UserResponse>, AppError> {
     match usecases::update_user(&state.db, id, req).await {
-        DomainResult::Ok(user) => Ok(ApiResponse::ok(user)),
+        DomainResult::Ok(user) => Ok(ApiResponse::ok(user.into())),
         DomainResult::NotFound => Err(AppError::not_found("User not found")),
         DomainResult::Err(e) => Err(AppError::internal_server_error(e)),
     }

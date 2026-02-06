@@ -27,3 +27,24 @@ pub struct UpdateUserRequest {
     pub email: Option<String>,
     pub password: Option<String>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserResponse {
+    pub id: Uuid,
+    pub name: String,
+    pub email: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+}
+
+impl From<User> for UserResponse {
+    fn from(user: User) -> Self {
+        Self {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+        }
+    }
+}
