@@ -6,7 +6,6 @@ pub async fn init_db_if_not_exists(database_url: &str) -> Result<(), sqlx::Error
     let options = PgConnectOptions::from_str(database_url)?;
     let db_name = options.get_database().unwrap_or("postgres");
 
-    // Connect to the admin database (usually 'postgres')
     let admin_options = options.clone().database("postgres");
     let pool = PgPoolOptions::new().connect_with(admin_options).await?;
 
