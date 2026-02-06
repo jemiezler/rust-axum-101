@@ -1,23 +1,14 @@
 use sqlx::Executor;
-use sqlx::PgPool;
-use std::fmt::Write;
+use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
+use std::str::FromStr;
 
-pub async fn init_db_if_not_exists(
-    host: &str,
-    port: u16,
-    user: &str,
-    password: &str,
-    db_name: &str,
-) -> Result<(), sqlx::Error> {
-    let mut url = String::new();
-    write!(
-        &mut url,
-        "postgres://{}:{}@{}:{}/postgres",
-        user, password, host, port
-    )
-    .unwrap();
+pub async fn init_db_if_not_exists(database_url: &str) -> Result<(), sqlx::Error> {
+    let options = PgConnectOptions::from_str(database_url)?;
+    let db_name = options.get_database().unwrap_or("postgres");
 
-    let pool: PgPool = PgPool::connect(&url).await?;
+    // Connect to the admin database (usually 'postgres')
+    let admin_options = options.clone().database("postgres");
+    let pool = PgPoolOptions::new().connect_with(admin_options).await?;
 
     let query = format!(r#"SELECT 1 FROM pg_database WHERE datname = '{}'"#, db_name);
 

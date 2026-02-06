@@ -23,11 +23,7 @@ pub async fn start() {
         .init();
 
     let db = crate::infra::database::setup::init(
-        &config.database.host,
-        config.database.port,
-        &config.database.user,
-        &config.database.password,
-        &config.database.db_name,
+        &config.database.url,
         config.database.max_connections,
         config.database.connect_timeout_secs,
     )

@@ -18,22 +18,9 @@ pub struct App {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Database {
-    pub host: String,
-    pub port: u16,
-    pub user: String,
-    pub password: String,
-    pub db_name: String,
+    pub url: String,
     pub max_connections: u32,
     pub connect_timeout_secs: u64,
-}
-
-impl Database {
-    pub fn connection_string(&self) -> String {
-        format!(
-            "postgres://{}:{}@{}:{}/{}",
-            self.user, self.password, self.host, self.port, self.db_name
-        )
-    }
 }
 
 impl AppConfig {
@@ -47,11 +34,7 @@ impl AppConfig {
                 env: get("APP_ENV")?,
             },
             database: Database {
-                host: get("DB_HOST")?,
-                port: get("DB_PORT")?.parse()?,
-                user: get("DB_USER")?,
-                password: get("DB_PASSWORD")?,
-                db_name: get("DB_NAME")?,
+                url: get("DATABASE_URL")?,
                 max_connections: get("DB_MAX_CONNECTIONS").unwrap_or("10".into()).parse()?,
                 connect_timeout_secs: get("DB_CONNECT_TIMEOUT").unwrap_or("5".into()).parse()?,
             },
