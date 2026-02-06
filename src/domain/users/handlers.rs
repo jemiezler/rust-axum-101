@@ -1,5 +1,6 @@
 use axum::Json;
 use axum::extract::{Path, State};
+use uuid::Uuid;
 
 use super::entities::{CreateUserRequest, UpdateUserRequest, User};
 use super::usecases;
@@ -22,7 +23,7 @@ pub async fn get_all_users(
 
 pub async fn find_one_user(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<User>, AppError> {
     match usecases::find_one_user(&state.db, id).await {
         DomainResult::Ok(user) => Ok(ApiResponse::ok(user)),
@@ -46,7 +47,7 @@ pub async fn create_user(
 
 pub async fn update_user(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
     Json(req): Json<UpdateUserRequest>,
 ) -> Result<ApiResponse<User>, AppError> {
     match usecases::update_user(&state.db, id, req).await {
@@ -58,7 +59,7 @@ pub async fn update_user(
 
 pub async fn delete_user(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<()>, AppError> {
     match usecases::delete_user(&state.db, id).await {
         DomainResult::Ok(_) => Ok(ApiResponse::ok(())),

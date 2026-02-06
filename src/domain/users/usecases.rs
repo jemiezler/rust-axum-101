@@ -1,7 +1,8 @@
 use super::entities::{CreateUserRequest, UpdateUserRequest, User};
-use crate::shared::types::result::DomainResult;
+use crate::shared::{security::password::hash_password, types::result::DomainResult};
 use sqlx::PgPool;
 use tracing::error;
+use uuid::Uuid;
 
 pub async fn get_all_users(pool: &PgPool) -> DomainResult<Vec<User>, String> {
     let users = sqlx::query_as::<_, User>(
@@ -28,7 +29,7 @@ pub async fn get_all_users(pool: &PgPool) -> DomainResult<Vec<User>, String> {
     }
 }
 
-pub async fn find_one_user(pool: &PgPool, id: i32) -> DomainResult<User, String> {
+pub async fn find_one_user(pool: &PgPool, id: Uuid) -> DomainResult<User, String> {
     let user = sqlx::query_as::<_, User>(
         r#"
         SELECT
@@ -57,6 +58,10 @@ pub async fn find_one_user(pool: &PgPool, id: i32) -> DomainResult<User, String>
 }
 
 pub async fn create_user(pool: &PgPool, req: CreateUserRequest) -> DomainResult<User, String> {
+    let hashed_password = match hash_password(&req.password) {
+        Ok(hash) => hash,
+        Err(e) => return DomainResult::Err(e),
+    };
     let user = sqlx::query_as::<_, User>(
         r#"
         INSERT INTO users (name, email, password)
@@ -72,7 +77,7 @@ pub async fn create_user(pool: &PgPool, req: CreateUserRequest) -> DomainResult<
     )
     .bind(req.name)
     .bind(req.email)
-    .bind(req.password)
+    .bind(hashed_password)
     .fetch_one(pool)
     .await;
 
@@ -87,7 +92,7 @@ pub async fn create_user(pool: &PgPool, req: CreateUserRequest) -> DomainResult<
 
 pub async fn update_user(
     pool: &PgPool,
-    id: i32,
+    id: Uuid,
     req: UpdateUserRequest,
 ) -> DomainResult<User, String> {
     let user = sqlx::query_as::<_, User>(
@@ -125,7 +130,7 @@ pub async fn update_user(
     }
 }
 
-pub async fn delete_user(pool: &PgPool, id: i32) -> DomainResult<(), String> {
+pub async fn delete_user(pool: &PgPool, id: Uuid) -> DomainResult<(), String> {
     let result = sqlx::query("DELETE FROM users WHERE id = $1")
         .bind(id)
         .execute(pool)

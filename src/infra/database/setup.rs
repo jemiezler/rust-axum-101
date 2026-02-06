@@ -1,7 +1,5 @@
 use sqlx::PgPool;
-use sqlx::migrate::Migrator;
 use sqlx::postgres::PgPoolOptions;
-use std::path::Path;
 use std::time::Duration;
 
 use super::init_db::init_db_if_not_exists;
@@ -24,15 +22,11 @@ pub async fn init(
         .await
         .expect("failed to connect to db for migration");
 
-    /* Run migrations
-    Check if migrations folder exists before running
-    */
-    if Path::new("./migrations").exists() {
-        let migrator = Migrator::new(Path::new("./migrations")).await?;
-        migrator.run(&pool).await?;
-    } else {
-        tracing::warn!("migrations directory not found, skipping migrations");
-    }
+    /* Run migrations */
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .expect("failed to run migrations");
 
     Ok(pool)
 }
