@@ -1,20 +1,20 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct PeopleName {
+pub struct LocalizedPersonName  {
     pub prefix: String,
     pub first_name: String,
     pub middle_name: String,
     pub last_name: String,
 }
 
-impl sqlx::Type<sqlx::Postgres> for PeopleName {
+impl sqlx::Type<sqlx::Postgres> for LocalizedPersonName  {
     fn type_info() -> sqlx::postgres::PgTypeInfo {
         sqlx::postgres::PgTypeInfo::with_name("JSONB")
     }
 }
 
-impl<'r> sqlx::Decode<'r, sqlx::Postgres> for PeopleName {
+impl<'r> sqlx::Decode<'r, sqlx::Postgres> for LocalizedPersonName  {
     fn decode(
         value: sqlx::postgres::PgValueRef<'r>,
     ) -> Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -24,7 +24,7 @@ impl<'r> sqlx::Decode<'r, sqlx::Postgres> for PeopleName {
     }
 }
 
-impl<'q> sqlx::Encode<'q, sqlx::Postgres> for PeopleName {
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for LocalizedPersonName  {
     fn encode_by_ref(
         &self,
         buf: &mut sqlx::postgres::PgArgumentBuffer,

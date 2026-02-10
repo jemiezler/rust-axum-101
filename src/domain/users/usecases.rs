@@ -4,7 +4,7 @@ use super::dtos::create::CreateUserRequest;
 use super::dtos::update::UpdateUserRequest;
 use super::entities::User;
 use super::entities::name_entity::UserNameEntity;
-use super::entities::people_name::{LocalizedName, PeopleName};
+use super::entities::people_name::{LocalizedPersonName, PersonName};
 use super::entities::user_entity::UserEntity;
 use crate::shared::security::password::hash_password;
 use crate::shared::types::result::DomainResult;
@@ -60,12 +60,12 @@ pub async fn get_all_users(pool: &PgPool) -> DomainResult<Vec<User>, String> {
     };
 
     // 3️⃣ group names by user_id
-    let mut name_map: HashMap<Uuid, HashMap<String, LocalizedName>> = HashMap::new();
+    let mut name_map: HashMap<Uuid, HashMap<String, PersonName>> = HashMap::new();
 
     for n in names {
         name_map.entry(n.user_id).or_default().insert(
             n.lang,
-            LocalizedName {
+            PersonName {
                 first: n.first_name,
                 middle: n.middle_name,
                 last: n.last_name,
@@ -78,7 +78,7 @@ pub async fn get_all_users(pool: &PgPool) -> DomainResult<Vec<User>, String> {
         .into_iter()
         .map(|u| User {
             id: u.id,
-            name: PeopleName {
+            name: LocalizedPersonName {
                 values: name_map.remove(&u.id).unwrap_or_default(),
             },
             email: u.email,
@@ -304,7 +304,7 @@ fn map_to_domain(entity: UserEntity, names: Vec<UserNameEntity>) -> User {
     for n in names {
         map.insert(
             n.lang,
-            LocalizedName {
+            PersonName {
                 first: n.first_name,
                 middle: n.middle_name,
                 last: n.last_name,
@@ -314,7 +314,7 @@ fn map_to_domain(entity: UserEntity, names: Vec<UserNameEntity>) -> User {
 
     User {
         id: entity.id,
-        name: PeopleName { values: map },
+        name: LocalizedPersonName { values: map },
         email: entity.email,
         password: entity.password,
         created_at: entity.created_at,
