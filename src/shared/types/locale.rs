@@ -1,13 +1,8 @@
-pub enum Locale {
-    EN,
-    TH,
-}
+use std::collections::HashMap;
 
-impl Locale {
-    pub fn to_str(&self) -> &str {
-        match self {
-            Locale::EN => "en",
-            Locale::TH => "th",
-        }
-    }
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LocalizedString {
+    pub values: HashMap<String, String>,
 }

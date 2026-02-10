@@ -4,9 +4,10 @@ use super::dtos::create::CreateUserRequest;
 use super::dtos::update::UpdateUserRequest;
 use super::entities::User;
 use super::entities::name_entity::UserNameEntity;
-use super::entities::people_name::{LocalizedPersonName, PersonName};
+use super::entities::people_name::PersonName;
 use super::entities::user_entity::UserEntity;
 use crate::shared::security::password::hash_password;
+use crate::shared::types::hash::Hash;
 use crate::shared::types::result::DomainResult;
 use sqlx::PgPool;
 use tracing::error;
@@ -78,9 +79,7 @@ pub async fn get_all_users(pool: &PgPool) -> DomainResult<Vec<User>, String> {
         .into_iter()
         .map(|u| User {
             id: u.id,
-            name: LocalizedPersonName {
-                values: name_map.remove(&u.id).unwrap_or_default(),
-            },
+            name: Hash::new(name_map.remove(&u.id).unwrap_or_default()),
             email: u.email,
             password: u.password,
             created_at: u.created_at,
@@ -314,7 +313,7 @@ fn map_to_domain(entity: UserEntity, names: Vec<UserNameEntity>) -> User {
 
     User {
         id: entity.id,
-        name: LocalizedPersonName { values: map },
+        name: Hash::new(map),
         email: entity.email,
         password: entity.password,
         created_at: entity.created_at,

@@ -4,12 +4,13 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::domain::users::entities::User;
-use crate::domain::users::entities::people_name::LocalizedPersonName ;
+use crate::domain::users::entities::people_name::PersonName;
+use crate::shared::types::hash::Hash;
 
 #[derive(Debug, Serialize, ToSchema)]
 pub struct UserResponse {
     pub id: Uuid,
-    pub name: LocalizedPersonName ,
+    pub name: Hash<String, PersonName>,
     pub email: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
